@@ -1,4 +1,5 @@
 ﻿using BLL.Entity;
+using DAL.Interfaces;
 using DAL.Repositories;
 using System;
 using System.Collections.Generic;
@@ -6,18 +7,18 @@ using System.Text;
 
 namespace DAL
 {
-    public class UnitOfWork : IDisposable, IUnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
         private ApplicationDbContext _context;
 
-        private Repository<User> _userRepository;
-        private Repository<UserProfile> _userProfileRepository;
-        private Repository<Post> _postRepository;
-        private Repository<Comment> _commentRepository;
-        private Repository<Tag> _tagRepository;
+        private IRepository<User> _userRepository;
+        private IRepository<UserProfile> _userProfileRepository;
+        private IRepository<Post> _postRepository;
+        private IRepository<Comment> _commentRepository;
+        private IRepository<Tag> _tagRepository;
 
         // Реализация ленивой загрузки для репозитория User.
-        public Repository<User> Users
+        public IRepository<User> Users
         {
             get
             {
@@ -30,7 +31,7 @@ namespace DAL
 
         // Реализация ленивой загрузки для репозитория UserProfile.
         // Репозиторий будет создан только при первом обращении к свойству UserProfiles, что позволяет оптимизировать использование ресурсов и улучшить производительность приложения.
-        public Repository<UserProfile> UserProfiles
+        public IRepository<UserProfile> UserProfiles
         {
             get
             {
@@ -40,7 +41,7 @@ namespace DAL
             }
         }
         
-        public Repository<Post> Posts
+        public IRepository<Post> Posts
         {
             get
             {
@@ -51,7 +52,7 @@ namespace DAL
             }
         }
 
-        public Repository<Comment> Comments
+        public IRepository<Comment> Comments
         {
             get
             {
@@ -61,7 +62,7 @@ namespace DAL
             }
         }
 
-        public Repository<Tag> Tags
+        public  IRepository<Tag> Tags
         {
             get
             {

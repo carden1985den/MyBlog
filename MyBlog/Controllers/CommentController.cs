@@ -8,11 +8,11 @@ namespace WEB.Controllers
 {
     public class CommentController : Controller
     {
-        private UnitOfWork _unitOfWork;
+        private IUnitOfWork _unitOfWork;
 
-        public CommentController(ApplicationDbContext context)
+        public CommentController(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = new UnitOfWork(context);
+            _unitOfWork = unitOfWork;
         }
 
         [Authorize]

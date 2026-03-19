@@ -4,7 +4,9 @@ using DAL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Reflection.Metadata;
 using WEB.Models.Post;
+using WEB.Models.Tag;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WEB.Controllers
@@ -13,7 +15,7 @@ namespace WEB.Controllers
     {
         private IUnitOfWork _unitOfWork;
         private IMapper _mapper;
-        public PostController(ApplicationDbContext context, IMapper mapper, IUnitOfWork unitOfWork)
+        public PostController(IMapper mapper, IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -115,9 +117,38 @@ namespace WEB.Controllers
             return View("PostComment", model);
         }
 
+        [Authorize]
+        [HttpPost]
+        public IActionResult PostComment(TagViewModel model)
+        {
+            // Получаем все теги отднойстрокой со страницы через модель и разбиваем их на отдельные теги, удаляя лишние пробелы
+            var curretTag = model.Tag.Split(';').Select(t => t.Trim()).ToList();
+
+            // Проходим по каждому тегу и проверяем, существует ли он уже в базе данных для данного поста. Если нет - создаем новый тег
+            foreach (var tagName in curretTag)
+            {
+                var existingTag = _unitOfWork.Tags.GetAll().FirstOrDefault(t => t.Name == tagName && t.PostId == Guid.Parse(model.PostId));
+
+                if (existingTag is null)
+                {
+                    _unitOfWork.Tags.Create(new Tag
+                    {
+                        PostId = Guid.Parse(model.PostId),
+                        Name = tagName
+                    });
+                }
+            }
+            //var allTegs = _unitOfWork.Tags.GetAll().Where(t => t.PostId == Guid.Parse(model.PostId));
+
+           
+            return RedirectToAction("PostComment", "Post",  new { id = model.PostId });
+        }
+
+        /*
         public IActionResult Search()
         {
             return View();
         }
+        */
     }
 }

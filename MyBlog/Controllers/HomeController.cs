@@ -13,10 +13,10 @@ namespace MyBlog.Controllers
 {
     public class HomeController : Controller
     {
-        private UnitOfWork _unitOfWork;
-        public HomeController(ApplicationDbContext context)
+        private IUnitOfWork _unitOfWork;
+        public HomeController(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = new UnitOfWork(context);
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]

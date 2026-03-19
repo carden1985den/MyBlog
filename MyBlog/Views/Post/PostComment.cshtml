@@ -1,8 +1,23 @@
-﻿@using WEB.Models.Comement
+﻿@using DAL
+@using WEB.Models.Comement
 @using WEB.Models.Post
 @model PostViewModel
+@inject IUnitOfWork _unitOfWork;
 
 @{
+	var tempTag = "";
+	var currentPost = _unitOfWork.Posts.GetById(Guid.Parse(Model.Id));
+	var tags = _unitOfWork.Tags.GetAll().Where(t => t.PostId == currentPost.Id).ToList();
+
+	if (tags is not null)
+	{
+		foreach(var tag in tags)
+		{
+			tempTag = tempTag + tag.Name + ";";
+		}
+		
+	}
+	
 }
 
 <div asp-validation-summary="All"></div>
@@ -19,7 +34,17 @@
 		<div>@Model.Text</div>
 	</div>
 
-	@Html.Partial("~/Views/Comment/_Add.cshtml", new CommentViewModel() { PostId = Model.Id})
+	<div style="display:flex">
+		
+		<label for="tag" style="font-size:13px">Теги:</label>
+		
+		<form method="post" asp-controller="Post" asp-action="PostComment" style="width:100%">
+			<input type="hidden" name="PostId" value=@Model.Id />
+			<input type="text" name="Tag" class="form-control" style="height:20px" value=@tempTag />
+		</form>
+	</div>
+	<br />
+	@Html.Partial("~/Views/Comment/_Add.cshtml", new CommentViewModel() { PostId = Model.Id })
 
 	@Html.Partial("~/Views/Comment/_All.cshtml")
 
