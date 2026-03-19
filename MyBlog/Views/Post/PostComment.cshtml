@@ -1,0 +1,26 @@
+﻿@using WEB.Models.Comement
+@using WEB.Models.Post
+@model PostViewModel
+
+@{
+}
+
+<div asp-validation-summary="All"></div>
+
+<div>
+	<div style="border:1px solid gray; margin-bottom:5px; padding:5px;">
+		<!--Title-->
+		<div style="border-bottom:1px dashed gray">
+			@Model.Title
+			<span class="float-end me-1"> Дата </span>
+		</div>
+			
+		<!--Text-->
+		<div>@Model.Text</div>
+	</div>
+
+	@Html.Partial("~/Views/Comment/_Add.cshtml", new CommentViewModel() { PostId = Model.Id})
+
+	@Html.Partial("~/Views/Comment/_All.cshtml")
+
+</div>

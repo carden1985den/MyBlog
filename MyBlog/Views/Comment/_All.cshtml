@@ -1,0 +1,49 @@
+﻿@using BLL.Entity
+@using DAL
+
+@inject ApplicationDbContext context
+
+@{
+	var _unitOfWork = new UnitOfWork(context);
+	var allComment = _unitOfWork.Comments.GetAll();
+	
+	var isAuthor = false;
+
+	<br />
+	foreach (var comment in allComment)
+	{
+		var currentUserId = User.FindFirst("UserId")?.Value;
+		var author = @_unitOfWork.Users.GetById((Guid)@comment.UserId!);
+		var createDate = @comment.Created;
+
+		// Если ID пользователя отправившего комментарий = ID текущего пользвоателя, предоставляем расширенные права
+		if (currentUserId is not null && comment.UserId.ToString() == currentUserId )
+		{
+			isAuthor = true;
+		}
+
+		<div>
+			<div class="fst-italic fs-5" style="border:1px solid #F5EBE9; background-color:#F5F1F0">
+				@comment.Text
+			</div>
+			<div>
+				<div class="fst-italic" style="float:right; border:0px solid black; font-size:15px">
+				
+					Добавлен: @createDate
+
+					Автор: @author.Login
+					
+					@if (isAuthor == true)
+					{
+						<a asp-controller="Comment" asp-action="Edit" asp-route-id="@comment.Id">Редактировать</a>
+						<a asp-controller="Comment" asp-action="Delete" asp-route-id="@comment.Id">Удалить</a>
+					}
+					
+				</div>
+			</div>
+		</div>
+		<br />
+		<br />
+		
+	}
+}

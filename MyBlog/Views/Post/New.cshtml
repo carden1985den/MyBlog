@@ -1,0 +1,26 @@
+﻿@using WEB.Models.Post
+
+@model PostViewModel
+@{
+}
+
+<div>
+	<form asp-controller="Post" asp-action="Create">
+		<div asp-validation-summary="ModelOnly" class="danger-text"></div>
+
+		<div>
+			<label asp-for="Title" class="form-label"></label>
+			<input type="text" asp-for="Title" class="form-control" />
+			<span asp-validation-for="Title" class="text-danger"></span>
+		</div>
+
+		<div>
+			<label asp-for="Text" class="form-label"></label>
+			<textarea asp-for="Text" class="form-control" style="height:300px"></textarea>
+			<span asp-validation-for="Text" class="text-danger"></span>
+		</div>
+		<div>
+			<input type="submit" value="Создать" class="btn btn-primary" />
+		</div>
+	</form>
+</div>

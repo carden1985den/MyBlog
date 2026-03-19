@@ -1,0 +1,34 @@
+﻿@using BLL.Entity
+
+@model IEnumerable<Post>
+
+@{
+
+}
+
+<div>
+	<form method="post" asp-action="Index" asp-controller="Home">
+		<input type="text" placeholder="Поиск по заголовку" class="form-control mb-3" name="search">
+	</form>
+</div>
+
+@foreach (var post in Model)
+{
+	<div style="border:1px solid gray; margin-bottom:5px; padding:5px;">
+		<!--Title-->
+		<div style="border-bottom:1px dashed gray">
+			<a asp-controller="Post" asp-action="PostComment" asp-route-id=@post.Id>@post.Title</a>
+			
+			<a asp-controller="Post" asp-action="Delete" asp-route-id=@post.Id class="float-end me-1"> Удалить </a>
+			
+			<a asp-controller="Post" asp-action="Edit" asp-route-id=@post.Id class="float-end me-1"> Изменить </a>
+			
+			<a asp-controller="User" asp-action="MyPage" asp-route-id=@post.Id class="float-end me-1"> Пользователь </a>
+			
+			<span class="float-end me-1"> Дата </span>
+		</div>
+			
+		<!--Text-->
+		<div>@post.Text</div>
+	</div>
+}

@@ -1,0 +1,45 @@
+﻿@using WEB.Models.User
+@model RegistrationViewModel
+@{
+	ViewData["title"] = "Регистрация";
+}
+
+<!-- JavaScripts помощники -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<!-- https://jqueryvalidation.org/ -->
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+
+<!-- https://cdnjs.com/libraries/jquery-validation-unobtrusive -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js" integrity="sha512-xq+Vm8jC94ynOikewaQXMEkJIOBp7iArs3IhFWSWdRT3Pq8wFz46p+ZDFAR7kHnSFf+zUv52B3prRYnbDRdgog==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<div>
+	<div><h3>Регистрация</h3></div>
+	<form method="post" asp-controller="User" asp-action="Registration">
+		<div asp-validation-summary="ModelOnly" class="text-danger"> </div>
+
+		<label asp-for="Username" class="form-label>">Логин</label>
+		<input asp-for="Username" class="form-control" />
+		<span asp-validation-for="Username" class="text-danger"></span>
+
+		<label asp-for="Password" class="form-label>">Пароль</label>
+		<input asp-for="Password" class="form-control" />
+		<span asp-validation-for="Password" class="text-danger"></span>
+
+		<label asp-for="Firstname" class="form-label>">Имя</label>
+		<input asp-for="Firstname" class="form-control" />
+		<span asp-validation-for="Firstname" class="text-danger"></span>
+
+		<label asp-for="Lastname" class="form-label>">Фамилия</label>
+		<input asp-for="Lastname" class="form-control" />
+		<span asp-validation-for="Lastname" class="text-danger"></span>
+
+		<label asp-for="Pictures" class="form-label>">Пикча</label>
+		<input asp-for="Pictures" class="form-control" />
+		<span asp-validation-for="Pictures" class="text-danger"></span>
+
+		<input type="submit" value="Регистрация" class="btn btn-primary" />
+	</form>
+	
+</div>

@@ -1,0 +1,31 @@
+﻿@using BLL.Entity
+@using DAL
+@model IEnumerable<Post>
+@inject ApplicationDbContext context
+
+@{
+	ViewData["Title"] = "Домашняя страница";
+}
+
+@if (TempData["EditPostError"] is not null)
+{
+	<div class="alert alert-danger">
+		@TempData["EditPostError"]
+	</div>
+}
+
+<div style="width:80%; height:500px;">
+	<h3>Мой маленький бложек</h3>
+	<br></>
+	<div>
+		@if (Model is null)
+		{
+			@Html.Partial("~/Views/Post/_ShowAll.cshtml")
+		}
+		else
+		{
+			@Html.Partial("~/Views/Post/_ShowSearched.cshtml")
+		}
+
+	</div>
+</div>
