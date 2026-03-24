@@ -1,0 +1,29 @@
+﻿@using DAL
+@using WEB.Models.Tag
+@model TagViewModel;
+@inject IUnitOfWork _unitOfWork;
+
+@{
+	var tempTag = "";
+	var tags = _unitOfWork.Tags.GetAll().Where(t => t.PostId == Guid.Parse(Model.PostId)).Select(t => t.Name);
+
+	if (tags is not null)
+	{
+		foreach (var tag in tags)
+		{
+			tempTag = tempTag + tag + ";";
+		}
+	}
+}
+
+<div style="display:flex">
+		
+	<label for="tag" style="font-size:13px">Теги:</label>
+
+	<form method="get" asp-controller="Tag" asp-action="Manage"></form>
+
+	<form method="post" asp-controller="Tag" asp-action="Manage" style="width:100%">
+		<input type="hidden" name="PostId" value=@Model.PostId />
+		<input type="text" name="Tag" class="form-control" style="height:20px" value=@tempTag />
+	</form>
+</div>

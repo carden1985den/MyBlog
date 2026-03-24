@@ -13,5 +13,7 @@ namespace BLL.Entity
         public List<Post> Post { get; set; }
         public List<Comment> Comment { get; set; }
         public UserProfile? Profile { get; set; }
+        public int RoleId { get; set; }
+        public Role Role { get; set; }
     }
 }

@@ -8,6 +8,6 @@ namespace BLL.Entity
     public class Role
     {
         public int Id { get; set; }
-        public RoleEnum RoleName { get; set; }
+        public RoleEnum Name { get; set; }
     }
 }

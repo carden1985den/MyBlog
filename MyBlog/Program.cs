@@ -1,9 +1,10 @@
-using DAL;
-using BLL.Entity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using AutoMapper;
+using BLL.Entity;
 using BLL.MappingProfile;
+using DAL;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 
 // Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options => options.LoginPath = "/login");
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.AccessDeniedPath = "/User/AcceessDenied";
+    }
+    );
 
 // Register the UnitOfWork as a singleton service
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

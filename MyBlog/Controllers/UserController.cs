@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BLL.Entity;
+using BLL.Enum;
 using DAL;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -134,8 +135,15 @@ namespace WEB.Controllers
                     return View(model);
                 }
 
+                // Получаем роль пользователя из базы данных, используя его RoleId. Это позволяет нам определить, какую роль имеет пользователь и какие права доступа ему предоставляются.
+                var currentUserRole = _unitOfWork.Roles.GetAll().Where(r => r.Id == currentUser.RoleId).FirstOrDefault();
+
                 // Если пользователь найден и пароль совпадает, создаем ClaimsIdentity и выполняем вход
-                var claims = new List<Claim> { new Claim(ClaimTypes.Name, currentUser.Login) };
+                var claims = new List<Claim> {
+                    new Claim(ClaimTypes.Name, currentUser.Login),
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, currentUserRole.Name.ToString())
+                };
+
 
                 // Добавить в Claim: "ID" авторизованного текущего пользователя
                 claims.Add(new Claim("UserId", currentUser.Id.ToString()));
@@ -246,6 +254,11 @@ namespace WEB.Controllers
         {
             var user = _unitOfWork.Users.GetById(id);
             return View("UserDetails", user);
+        }
+
+        public IActionResult AcceessDenied()
+        {
+            return View();
         }
     }
 }

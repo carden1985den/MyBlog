@@ -13,9 +13,11 @@ namespace DAL
 
         private IRepository<User> _userRepository;
         private IRepository<UserProfile> _userProfileRepository;
+        private IRepository<Role> _roleRepository;
         private IRepository<Post> _postRepository;
         private IRepository<Comment> _commentRepository;
         private IRepository<Tag> _tagRepository;
+        
 
         // Реализация ленивой загрузки для репозитория User.
         public IRepository<User> Users
@@ -40,7 +42,18 @@ namespace DAL
                 return _userProfileRepository;
             }
         }
-        
+
+        public IRepository<Role> Roles
+        {
+            get
+            {
+                if (_roleRepository == null)
+                    _roleRepository = new Repository<Role>(_context);
+
+                return _roleRepository;
+            }
+        }
+
         public IRepository<Post> Posts
         {
             get

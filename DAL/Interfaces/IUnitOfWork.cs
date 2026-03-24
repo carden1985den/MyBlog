@@ -12,9 +12,11 @@ namespace DAL
     {
         IRepository<User> Users { get; }
         IRepository<UserProfile> UserProfiles { get; }
+        IRepository<Role> Roles { get; }
         IRepository<Post> Posts { get; }
         IRepository<Tag> Tags { get; }
         IRepository<Comment> Comments { get; }
+        
 
         void Save();
         void Dispose();
