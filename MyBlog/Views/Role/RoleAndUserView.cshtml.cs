@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace WEB.Views.User
+namespace WEB.Views.Role
 {
-    public class AcceessDeniedModel : PageModel
+    public class RoleAndUserViewModel : PageModel
     {
         public void OnGet()
         {

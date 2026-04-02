@@ -2,6 +2,8 @@
 using DAL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyBlog.Models;
+using WEB.Models.Post;
 using WEB.Models.Tag;
 
 namespace WEB.Controllers
@@ -14,9 +16,10 @@ namespace WEB.Controllers
             _unitOfWork = unitOfWork;
         }
 
+        /*
         [Authorize]
         [HttpPost]
-        public IActionResult Manage(TagViewModel model)
+        public IActionResult Manage(TagsViewModel model)
         {
 
             // Получаем все теги отдной строкой со страницы через модель и разбиваем их на отдельные теги, удаляя лишние пробелы
@@ -52,5 +55,52 @@ namespace WEB.Controllers
 
             return RedirectToAction("PostComment", "Post", new { id = model.PostId });
         }
+        */
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult ShowAll()
+        {
+            var model = new TagsViewModel();
+            var allTegs = _unitOfWork.Tags.GetAll();
+
+            // 
+            model.Tags = allTegs.Select(t => new TagChekBox()
+            {
+                Id = t.Id,
+                Name = t.Name,
+                IsChecked = false
+            }).ToList();
+
+            return View("ShowAllTegs", model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public IActionResult Add(TagsViewModel model)
+        {
+            if (ModelState.IsValid == true && !string.IsNullOrEmpty(model.NewTagName))
+            {
+                var currentTag = _unitOfWork.Tags.GetAll().Where(t => t.Name == model.NewTagName.ToLower()).FirstOrDefault();
+
+                if (currentTag is null)
+                {
+                    var tag = new Tag() {Name = model.NewTagName};
+
+                    _unitOfWork.Tags.Create(tag);
+                    return RedirectToAction("ShowAll", "Tag");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Указанный Тэг существует");
+                    return View("ShowAllTegs", model);
+                }
+            }
+            
+            //ModelState.AddModelError("", "Не указано имя тэга");
+            return View("ShowAllTegs", model);
+        }
+
+
     }
 }

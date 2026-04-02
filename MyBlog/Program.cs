@@ -25,7 +25,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.LoginPath = "/login";
-        options.AccessDeniedPath = "/User/AcceessDenied";
+        options.AccessDeniedPath = "/Error/AcceessDenied";
     }
     );
 
@@ -61,6 +61,11 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+app.MapControllerRoute(
+    name: "ResourceNotFound",
+    pattern: "{*url}",
+    defaults: new { controller = "Error", action = "ResourceNotFound" }
+    );
 
 //app.MapGet("/", (ApplicationDbContext dbContext) => dbContext.Users.ToList());
 

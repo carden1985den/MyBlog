@@ -19,6 +19,6 @@ namespace DAL
         
 
         void Save();
-        void Dispose();
+        new void Dispose();
     }
 }

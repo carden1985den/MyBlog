@@ -10,14 +10,13 @@ namespace BLL.Entity
         public string FirstName { get; set; } = null!;
         public string? LastName { get; set; }
         public string? Picture { get; set; }
-
-        // foregin key and naviogation property to User
         public Guid UserId { get; set; }
-        public User User { get; set; }
+        public User User { get; set; } = null!;
 
-        public string GetFullName()
+        public string FullName()
         {
             return $"{FirstName} {LastName}";
         }
+
     }
 }

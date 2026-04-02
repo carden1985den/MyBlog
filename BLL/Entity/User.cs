@@ -10,10 +10,10 @@ namespace BLL.Entity
         public  Guid Id { get; set; }
         public string Login { get; set; } = null!;
         public string Password { get; set; } = null!;
-        public List<Post> Post { get; set; }
-        public List<Comment> Comment { get; set; }
-        public UserProfile? Profile { get; set; }
+        public UserProfile Profile { get; set; } = null!;
+        public List<Post>? Post { get; set; }
+        public List<Comment>? Comment { get; set; }
         public int RoleId { get; set; }
-        public Role Role { get; set; }
+        public Role Role { get; set; } = null!;
     }
 }

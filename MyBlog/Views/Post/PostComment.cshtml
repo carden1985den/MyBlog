@@ -32,8 +32,8 @@
 	</div>
 	-->
 	
-	@Html.Partial("~/Views/Tag/_ViewTag.cshtml", new TagViewModel() { PostId = Model.Id })
-	<br />
+	<!-- Вывести список всех тегов -->
+	
 	@Html.Partial("~/Views/Comment/_Add.cshtml", new CommentViewModel() { PostId = Model.Id })
 
 	@Html.Partial("~/Views/Comment/_All.cshtml")

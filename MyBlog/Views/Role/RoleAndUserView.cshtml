@@ -1,0 +1,93 @@
+﻿@using WEB.Models.Role
+@model RoleAndUserModel
+
+@{
+}
+@section Scripts {
+	<script>
+		function toggleOtherCheckboxes(clickedCheckbox) {
+			const checkboxes = document.querySelectorAll('.check-box');
+			let anyChecked = false;
+
+			// Проверяем, отмечено ли текущий чекбокс
+			if (clickedCheckbox.checked) {
+				// Если текущий чекбокс отмечен, запрещаем остальным
+				checkboxes.forEach(cb => {
+					if (cb !== clickedCheckbox) {
+						cb.disabled = true;
+					}
+				});
+				anyChecked = true;
+			} else {
+				// Если чекбокс снят, проверяем, есть ли другие отмеченные
+				checkboxes.forEach(cb => {
+					if (cb.checked) {
+						anyChecked = true;
+						return;
+					}
+				});
+
+				// Если ни одного активного чекбокса нет, открываем все
+				if (!anyChecked) {
+					checkboxes.forEach(cb => {
+						cb.disabled = false;
+					});
+				}
+			}
+		}
+	</script>
+}
+
+@using (@Html.BeginForm("EditUserRole", "Role", FormMethod.Post))
+{
+	
+	<!-- Блок доступных тегов -->
+	@Html.Label("Tag", "Доступные роли", new { @class = "form-label" })
+	<div class="form-control" style="display:flex; width:100%; border-color:#E3E1E1">
+		
+		@if (Model.RoleAvailable != null && Model.RoleAvailable.Count() > 0)
+		{
+			for (int i = 0; i < Model.RoleAvailable.Count(); i++)
+			{
+				<div style="padding-left:10px">
+					@Html.HiddenFor(t => t.RoleAvailable[i].RoleId)
+					@Html.HiddenFor(t => t.RoleAvailable[i].RoleName)
+					@Html.CheckBoxFor(t => t.RoleAvailable[i].IsChecked, new { onclick = "toggleOtherCheckboxes(this)" })
+					@Html.DisplayFor(t => t.RoleAvailable[i].RoleName)
+				</div>
+			}
+		}
+	</div>
+	
+	<br />
+
+	<!-- Блок доступных пользователей  -->
+	@Html.Label("Редактирование групп пользователей")
+	<div class="form-control" style="display:flex; width:100%; border-color:#E3E1E1">
+
+		@if (Model.UserAvailables != null && Model.UserAvailables.Count() > 0)
+		{
+			for (int i = 0; i < Model.UserAvailables.Count(); i++)
+			{
+				<div style="border:1px solid black; padding:10px; margin:10px">
+					@Html.HiddenFor(u => u.UserAvailables[i].UserId)
+					@Html.HiddenFor(u => u.UserAvailables[i].UserName)
+					@Html.HiddenFor(u => u.UserAvailables[i].UserRole)
+					@Html.CheckBoxFor(u => u.UserAvailables[i].IsChecked)
+					@Html.DisplayFor(u => u.UserAvailables[i].UserName)
+					<br />
+					Текущая роль:<br />
+					
+					<b>@Html.DisplayFor(u => u.UserAvailables[i].UserRole)</b>
+				</div>
+				<br />
+				<br />
+			}
+		}
+	</div>
+	
+	<div asp-validation-summary="ModelOnly"></div>
+
+	<input type="submit" class="btn btn-primary" value="Обновить" />
+
+}

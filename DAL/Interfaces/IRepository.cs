@@ -8,7 +8,7 @@ namespace DAL.Interfaces
     public interface IRepository <TEntity> where TEntity : class
     {
         // get all
-        IEnumerable<TEntity> GetAll ();
+        IQueryable<TEntity> GetAll ();
 
         // get by id
         TEntity GetById(Guid id);

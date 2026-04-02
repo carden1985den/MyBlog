@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Collections;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using WEB.Models.Post;
 using WEB.Models.Tag;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
@@ -22,25 +23,54 @@ namespace WEB.Controllers
             _mapper = mapper;
         }
 
+
         [Authorize(Roles = "Admin, Editor")]
         [HttpGet]
         [Route("/Post/New")]
         public IActionResult Create()
         {
-            return View("New");
+            var model = new PostViewModel();
+
+            model.AvailableTags = _unitOfWork.Tags.GetAll().Select(t =>
+                new TagChekBox()
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    IsChecked = false
+                }
+            ).ToList();
+
+            return View("New", model);
         }
 
-        [Authorize (Roles = "Admin, Editor")]
+        [Authorize(Roles = "Admin, Editor")]
         [HttpPost]
         [Route("/Post/New")]
         public IActionResult Create(PostViewModel model)
         {
-            var post = _mapper.Map<Post>(model);
+            if (ModelState.IsValid == true)
+            {
+                var selectedTagId = model.AvailableTags.Where(t => t.IsChecked == true).Select(t => t.Id).ToList<Guid>();
 
-            post.UserId = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Login == User.Identity.Name).Id;
+                var post = new Post()
+                {
+                    Title = model.Title,
+                    Text = model.Text,
+                    UserId = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Login == User.Identity.Name).Id,
+                    TagId = selectedTagId
+                };
 
-            _unitOfWork.Posts.Create(post);
-            return RedirectToAction("Index", "Home");
+
+                //var selectedTags = _unitOfWork.Tags.GetAll().Where(t => model.SelectedTagId.Contains(t.Id.ToString())).ToList();
+
+                //post.Tags = selectedTags;
+
+                _unitOfWork.Posts.Create(post);
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View("New", model);
         }
 
         [Authorize]

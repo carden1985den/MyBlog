@@ -4,23 +4,43 @@
 @{
 }
 
-<div>
-	<form asp-controller="Post" asp-action="Create">
-		<div asp-validation-summary="ModelOnly" class="danger-text"></div>
+@using (Html.BeginForm("Create", "Post", FormMethod.Post))
+{
 
-		<div>
-			<label asp-for="Title" class="form-label"></label>
-			<input type="text" asp-for="Title" class="form-control" />
-			<span asp-validation-for="Title" class="text-danger"></span>
-		</div>
+	@Html.HiddenFor(t => t.Id)
 
+
+	<div class="form-control">
+		<div asp-validation-summary="ModelOnly"></div>
+		
 		<div>
-			<label asp-for="Text" class="form-label"></label>
-			<textarea asp-for="Text" class="form-control" style="height:300px"></textarea>
-			<span asp-validation-for="Text" class="text-danger"></span>
+			@Html.LabelFor(t => t.Title, new { @class = "form-check-label" })
+			@Html.TextBoxFor(t => t.Title, new { @class = "form-control" })
+			@Html.ValidationMessageFor(t => t.Title)
 		</div>
+		<br />
 		<div>
-			<input type="submit" value="Создать" class="btn btn-primary" />
+			@Html.LabelFor(t => t.Text, new { @class = "form-check-label" })
+			@Html.TextAreaFor(t => t.Text, new { @style = "height:400", @class = "form-control" })
+			@Html.ValidationMessageFor(t => t.Text)
 		</div>
-	</form>
-</div>
+		<br />
+		
+		<div style="display:flex">
+			@Html.Label("Тэги:")
+			
+			@for (int i = 0; i < Model.AvailableTags.Count(); i++)
+			{
+				<div style="margin-left:10px">
+					@Html.HiddenFor(t => t.AvailableTags[i].Id)
+					@Html.HiddenFor(t => t.AvailableTags[i].Name)
+
+					@Html.CheckBoxFor(t => t.AvailableTags[i].IsChecked)
+					@Html.DisplayFor(t => t.AvailableTags[i].Name)
+				</div>
+			}
+			
+		</div>
+		<button type="submit" class="btn btn-primary">Опубликовать</button>
+	</div>
+}

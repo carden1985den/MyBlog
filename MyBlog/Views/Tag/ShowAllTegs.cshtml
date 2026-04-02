@@ -1,0 +1,39 @@
+﻿@using WEB.Models.Tag
+@model TagsViewModel
+
+@{
+}
+
+<h1>Доступные теги:</h1>
+
+@using (Html.BeginForm("Add", "Tag", FormMethod.Post))
+{
+	<div class="form-control">
+		<div>
+			@if (Model.Tags == null || Model.Tags.Count() == 0)
+			{
+				<span>Нет доступных тегов</span>
+			}
+			else
+			{
+				<div style="display:flex">
+					@for (int i = 0; i < Model.Tags.Count(); i++)
+					{
+						var tagName = Model.Tags[i].Name.ToString();
+						<div style="display:inline-block; margin-right:20px">
+							@Html.HiddenFor(t => t.Tags[i].Id)
+							@Html.HiddenFor(t => t.Tags[i].Name)
+							@Html.CheckBoxFor(t => t.Tags[i].IsChecked)
+							@Html.DisplayFor(t => t.Tags[i].Name)
+						</div>
+					}
+				</div>
+			}
+		</div>
+
+	<br />
+		<div asp-validation-summary="ModelOnly" class="alert-danger"></div>
+		<input type="text" placeholder="Введиет имя нового тега" name="NewTagName" />
+		<input type="submit" class="btn btn-primary" value="Добавить" />
+	</div>
+}

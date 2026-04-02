@@ -13,9 +13,9 @@ namespace DAL.Repositories
         {
             _dbContext = dbContext;
         }
-        public IEnumerable<TEntity> GetAll()
+        public IQueryable<TEntity> GetAll()
         {
-            return _dbContext.Set<TEntity>().ToList();
+            return _dbContext.Set<TEntity>(); //.ToList();
         }
 
         public TEntity GetById(Guid id)

@@ -141,7 +141,8 @@ namespace WEB.Controllers
                 // Если пользователь найден и пароль совпадает, создаем ClaimsIdentity и выполняем вход
                 var claims = new List<Claim> {
                     new Claim(ClaimTypes.Name, currentUser.Login),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, currentUserRole.Name.ToString())
+                    //new Claim(ClaimsIdentity.DefaultRoleClaimType, currentUserRole.Name.ToString())
+                    new Claim(ClaimTypes.Role, currentUserRole.Name.ToString())
                 };
 
 
@@ -149,7 +150,13 @@ namespace WEB.Controllers
                 claims.Add(new Claim("UserId", currentUser.Id.ToString()));
 
                 // Создаем ClaimsIdentity с использованием схемы аутентификации "Cookies" и выполняем вход, передавая созданный ClaimsPrincipal
-                ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
+                var claimsIdentity = new ClaimsIdentity(
+                    claims,
+                    "Cookies",
+                    ClaimsIdentity.DefaultNameClaimType, // Какое поле считать за Name
+                    ClaimsIdentity.DefaultRoleClaimType  // Какое поле считать за Role
+                    );
+
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                 return RedirectToAction("Index", "Home");
@@ -254,11 +261,6 @@ namespace WEB.Controllers
         {
             var user = _unitOfWork.Users.GetById(id);
             return View("UserDetails", user);
-        }
-
-        public IActionResult AcceessDenied()
-        {
-            return View();
         }
     }
 }

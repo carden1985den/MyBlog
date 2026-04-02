@@ -1,0 +1,16 @@
+﻿@using WEB.Models.Tag
+@model AddTagViewModel
+
+@{
+}
+
+<div>
+	<form asp-controller="Tag" asp-action="Add">
+		<div asp-validation-summary="ModelOnly"></div>
+
+		<div>
+			<input type="text" name="Name" class="form-control" />
+		</div>
+
+	</form>
+</div>

@@ -12,7 +12,8 @@ namespace BLL.Entity
         public DateTime Created { get; set; }
         public Guid? UserId { get; set; }
         public User? User { get; set; }
-        public List<Comment> Comment { get; set; } = null!;
-        public List<Tag> Tag { get; set; } = null!;
+        public List<Comment>? Comment { get; set; }
+        public List<Guid>? TagId { get; set; }
+        public List<Tag>? Tag { get; set; }
     }
 }
