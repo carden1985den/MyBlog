@@ -88,7 +88,7 @@ namespace DAL
 
         public UnitOfWork(ApplicationDbContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public void Save()
