@@ -9,7 +9,7 @@ namespace BLL.Entity
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = null!;
-        public ICollection<Post>? Posts { get; set; }
+        public ICollection<Post> Posts { get; set; } = new List<Post>();
 
     }
 }

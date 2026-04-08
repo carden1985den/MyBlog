@@ -17,10 +17,12 @@ namespace WEB.Controllers
     {
         private IUnitOfWork _unitOfWork;
         private IMapper _mapper;
-        public PostController(IMapper mapper, IUnitOfWork unitOfWork)
+        private readonly ILogger<PostController> _logger;
+        public PostController(IMapper mapper, IUnitOfWork unitOfWork, ILogger<PostController> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _logger = logger;
         }
 
 
@@ -48,6 +50,8 @@ namespace WEB.Controllers
         [Route("/Post/New")]
         public IActionResult Create(PostViewModel model)
         {
+            _logger.LogInformation($"Пользователь {User.Identity.Name} создал пост");
+
             if (ModelState.IsValid == true)
             {
                 var selectedTagId = model.AvailableTags.Where(t => t.IsChecked == true).Select(t => t.Id).ToList<Guid>();
@@ -57,7 +61,7 @@ namespace WEB.Controllers
                     Title = model.Title,
                     Text = model.Text,
                     UserId = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Login == User.Identity.Name).Id,
-                    TagId = selectedTagId
+                    TagId = selectedTagId?.Count > 0 ? selectedTagId[0] : Guid.Empty,
                 };
 
 
@@ -83,6 +87,8 @@ namespace WEB.Controllers
             // Проверяем, является ли текущий пользователь автором поста, если нет - выдаем ошибку и перенаправляем на главную страницу
             if (User.FindFirst("UserId").Value != currentPost.UserId.ToString())
             {
+                _logger.LogError($"Пользователь {User.Identity.Name} попытался отредактировать пост, не являясь его автором");
+
                 TempData["EditPostError"] = "Нет прав на редактирование поста";
                 return RedirectToAction("Index", "Home");
             }
@@ -98,6 +104,7 @@ namespace WEB.Controllers
         [Route("/Post/Edit")]
         public IActionResult Edit(PostViewModel model)
         {
+            _logger.LogInformation($"Пользователь {User.Identity.Name} отредактировал пост");
 
             if (model.Id is not null)
             {
@@ -139,12 +146,42 @@ namespace WEB.Controllers
         [Route("/Post/PostComment")]
         public IActionResult PostComment(string id)
         {
+            // Берем пост из БД по ID
             var currentPost = _unitOfWork.Posts.GetById(Guid.Parse(id));
 
+            // если поста нет, переходим на домашнюю страницу
             if (currentPost is null)
                 return RedirectToAction("Index", "Home");
 
-            var model = _mapper.Map<PostViewModel>(currentPost);
+            // Создаём объект PostViewModel
+            var model = new PostViewModel() { 
+                Id = id,
+                Title = currentPost.Title,
+                Text = currentPost.Text,
+                
+            };
+
+            if (!Guid.TryParse(id, out var postId))
+                return NotFound();
+
+            // берем из БД связанный комментарии
+            var allComments = _unitOfWork.Comments.GetAll().Where(c =>c.PostId == postId);
+
+            model.AllComments = (from c in _unitOfWork.Comments.GetAll()
+                                 join u in _unitOfWork.Users.GetAll() on c.UserId equals u.Id
+                                 where c.PostId == postId
+                                 select new CurrentComment()
+                                 {
+                                     Id = c.Id.ToString(),
+                                     Text = c.Text,
+                                     CreateDate = c.Created,
+                                     UserId = c.UserId.ToString(),
+                                     PostId = c.PostId.ToString(),
+                                     UserName = u.Login
+                                 }).ToList(
+                );
+
+            //var model = _mapper.Map<PostViewModel>(currentPost);
             return View("PostComment", model);
         }
     }

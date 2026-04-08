@@ -14,9 +14,11 @@ namespace MyBlog.Controllers
     public class HomeController : Controller
     {
         private IUnitOfWork _unitOfWork;
-        public HomeController(IUnitOfWork unitOfWork)
+        private readonly ILogger<HomeController> _logger;
+        public HomeController(IUnitOfWork unitOfWork, ILogger<HomeController> logger)
         {
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -28,6 +30,17 @@ namespace MyBlog.Controllers
         [HttpPost]
         public IActionResult Index(string search)
         {
+            var user = User;
+            if (user.Identity.IsAuthenticated == true )
+            {
+                _logger.LogInformation($"{user.Identity.Name} searching tags by name ({HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString()})");
+            }
+            else
+            {
+                _logger.LogInformation($"Anonymous user searching tags by name ({HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString()})");
+            }
+            
+
             if (!string.IsNullOrEmpty(search))
             {
                 IEnumerable<Post> serachedPost = _unitOfWork.Posts.GetAll().Where(n => n.Title.Contains(search)).ToList();
@@ -37,6 +50,7 @@ namespace MyBlog.Controllers
                     return View("Index", serachedPost);
                 }
             }
+
             return View("Index");
         }
 

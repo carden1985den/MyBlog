@@ -11,7 +11,7 @@ namespace BLL.Entity
         public string? LastName { get; set; }
         public string? Picture { get; set; }
         public Guid UserId { get; set; }
-        public User User { get; set; } = null!;
+        public virtual User User { get; set; } = null!;
 
         public string FullName()
         {

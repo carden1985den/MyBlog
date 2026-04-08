@@ -11,8 +11,8 @@ namespace BLL.Entity
         public string Login { get; set; } = null!;
         public string Password { get; set; } = null!;
         public UserProfile Profile { get; set; } = null!;
-        public List<Post>? Post { get; set; }
-        public List<Comment>? Comment { get; set; }
+        public ICollection<Post>? Post { get; set; }
+        public ICollection<Comment>? Comment { get; set; }
         public int RoleId { get; set; }
         public Role Role { get; set; } = null!;
     }

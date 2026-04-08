@@ -19,23 +19,38 @@
 		<div>@Model.Text</div>
 	</div>
 
-	
-	<!--
-	<div style="display:flex">
-		
-		<label for="tag" style="font-size:13px">Теги:</label>
-		
-		<form method="post" asp-controller="Post" asp-action="PostComment" style="width:100%">
-			<input type="hidden" name="PostId" value=@Model.Id />
-			<input type="text" name="Tag" class="form-control" style="height:20px" value=tempTag />
-		</form>
-	</div>
-	-->
-	
-	<!-- Вывести список всех тегов -->
-	
+	<!-- Вывести список всех комментариев -->
 	@Html.Partial("~/Views/Comment/_Add.cshtml", new CommentViewModel() { PostId = Model.Id })
 
-	@Html.Partial("~/Views/Comment/_All.cshtml")
+	<br />
+	<div>
+		@if (Model.AllComments is not null)
+		{
+			foreach (var comment in Model.AllComments)
+			{
+				<div class="all_comments_extdata">
+					<span>
+						Дата создания: @comment.CreateDate
+					</span>
+						
+					<span>
+						пользователь: <a asp-route-id="@comment.UserId" asp-action="View" asp-controller="User">@comment.UserName</a>
+					</span>
 
+					<span>
+						<a asp-route-id="@comment.Id" asp-action="Remove" asp-controller="Comment">Удалить</a>
+					</span>
+				</div>
+
+				<div class="all_comments">
+					@comment.Text
+				</div>
+				<br />
+			}
+		}
+	</div>
+
+	@* <!--
+	@Html.Partial("~/Views/Comment/_All.cshtml")
+	--> *@
 </div>

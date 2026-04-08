@@ -16,27 +16,13 @@ namespace WEB.Controllers
     {
         private UnitOfWork _unitOfWork;
         private IMapper _mapper;
-        public UserController(ApplicationDbContext context, IMapper mapper)
+        private readonly ILogger<UserController> _logger;
+        public UserController(ApplicationDbContext context, IMapper mapper, ILogger<UserController> logger)
         {
             _unitOfWork = new UnitOfWork(context);
             _mapper = mapper;
+            _logger = logger;
         }
-
-        /*
-        [Authorize]
-        [HttpGet]
-        [Route("Users")]
-        public IActionResult GetUsers()
-        {
-            var user = _unitOfWork.Users.GetById(1);
-            var users = _unitOfWork.Users.GetAll();
-
-            var userViewModel = new UserViewModel();
-            userViewModel.name = user.Login;
-            //return View("GetUsers", userViewModel);
-            return StatusCode(200, user);
-        }
-        */
 
         /// <summary>
         /// Регистрация нового пользователя. При GET-запросе отображается форма регистрации, а при POST-запросе обрабатываются данные формы и создается новый пользователь в базе данных.
@@ -69,6 +55,7 @@ namespace WEB.Controllers
 
                 if (existingUser is not null)
                 {
+                    _logger.LogError("Попытка регистрации с уже существующим логином: {Username}", model.Username);
                     ModelState.AddModelError("", "Указанный логин занят другим пользователем");
                     return View("Registration");
                 }

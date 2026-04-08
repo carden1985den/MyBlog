@@ -9,10 +9,12 @@ namespace WEB.Controllers
     public class CommentController : Controller
     {
         private IUnitOfWork _unitOfWork;
+        private readonly ILogger<CommentController> _logger;
 
-        public CommentController(IUnitOfWork unitOfWork)
+        public CommentController(IUnitOfWork unitOfWork, ILogger<CommentController> logger)
         {
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         [Authorize]
@@ -20,6 +22,8 @@ namespace WEB.Controllers
         [Route("Add")]
         public IActionResult Add(CommentViewModel model)
         {
+            _logger.LogInformation($"Пользователь {User.Identity.Name} создал комментарий");
+
             // Получить идентификатор текущего поста из модели
             var currentPostId = model.PostId;
 
@@ -60,6 +64,8 @@ namespace WEB.Controllers
         [HttpPost]
         public IActionResult Edit(CommentViewModel model)
         {
+            _logger.LogInformation($"Пользователь {User.Identity.Name} изменил комментарий");
+
             var currentComment = _unitOfWork.Comments.GetById(Guid.Parse(model.Id));
             var currentPostId = _unitOfWork.Comments.GetById(currentComment.Id).PostId;
 
@@ -76,6 +82,7 @@ namespace WEB.Controllers
         [HttpGet]
         public IActionResult Delete(string id)
         {
+            _logger.LogInformation($"Пользователь {User.Identity.Name} удалил комментарий");
             // Получить комментарий по идентификатору
             var curretComment = _unitOfWork.Comments.GetById(Guid.Parse(id));
             // Получить идентификатор текущего поста, к которому принадлежит комментарий

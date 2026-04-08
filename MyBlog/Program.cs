@@ -5,6 +5,8 @@ using DAL;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using NLog;
+using NLog.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,12 +43,20 @@ builder.Services.AddControllersWithViews();
 // Add AutoMapper and register the mapping profile
 builder.Services.AddAutoMapper(opition => opition.AddProfile<MappingProfile>());
 
+// NLOG
+var logger = LogManager.Setup().LoadConfigurationFromFile($"{Directory.GetCurrentDirectory()}\\nlog.config").GetCurrentClassLogger();
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
+
+logger.Debug("Инициализация Приложения");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("Error/SomthingWrong");
+    app.UseHsts();
 }
 app.UseRouting();
 
