@@ -1,30 +1,29 @@
-﻿using BLL.Enum;
+﻿using Core.Interfaces.Services;
+using Core.Models.Role;
 using DAL;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Security.Claims;
-using WEB.Models.Role;
 
 namespace WEB.Controllers
 {
     public class RoleController : Controller
     {
-        private IUnitOfWork _unitOfWork;
-        public RoleController(IUnitOfWork unitOfWork)
+        private readonly IRoleService _roleService;
+        private readonly IUserService _userService;
+        public RoleController(IRoleService roleService, IUserService userService)
         {
-            _unitOfWork = unitOfWork;
+            _roleService = roleService;
+            _userService = userService;
         }
 
         [HttpGet]
         [Route("/Role/EditUserRole")]
         public IActionResult EditUserRole()
         {
-            //var allUsers = _unitOfWork.Users.GetAll();
-            //var allRoles = _unitOfWork.Roles.GetAll();
-
             var model = new RoleAndUserModel();
-            model.RoleAvailable = _unitOfWork.Roles.GetAll().Select(t =>
+            model.RoleAvailable = _roleService.GetAll().Select(t =>
                 new RoleAvailable()
                 {
                     RoleId = t.Id,
@@ -32,15 +31,13 @@ namespace WEB.Controllers
                     IsChecked = false
                 }).ToList();
 
-            model.UserAvailables = _unitOfWork.Users.GetAll()
-                .Include(u => u.Profile)
-                .Include(u => u.Role)
+            model.UserAvailables = _userService.GetAllDto()
                 .Select(u =>
                     new UserAvailable()
                     {
                             UserId = u.Id,
-                            UserName = $"{u.Profile.FullName().Trim()} ({u.Login})",
-                            UserRole = u.Role.Name.ToString()
+                            UserName = $"{u.FirstName.Trim().Concat(" " + u.FirstName.Trim())} ({u.UserName})",
+                            UserRole = u.Role
                     })
                 .ToList();
 
@@ -52,7 +49,7 @@ namespace WEB.Controllers
         public IActionResult EditUserRole(RoleAndUserModel model)
         {
             var targetUserId = model.UserAvailables.FirstOrDefault(t => t.IsChecked is true).UserId;
-            var targetUser = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Id == targetUserId);
+            var targetUser = _userService.GetAll().FirstOrDefault(u => u.Id == targetUserId);
 
             if (model.UserAvailables.Where(t => t.IsChecked is true).Count() > 1)
             {
@@ -73,15 +70,15 @@ namespace WEB.Controllers
             }
 
             // Получаем текущую роль пользователя
-            var targetUserRoleId = targetUser.RoleId;
+            var targetUserRoleId = targetUser?.Role;
             // Если выбранная роль не привязана к текущему пользователю..
-            var selectedRole = model.RoleAvailable.FirstOrDefault(r => r.IsChecked == true && r.RoleId != targetUserRoleId);
+            var selectedRole = model.RoleAvailable.FirstOrDefault(r => r.IsChecked == true && r.RoleId != targetUserRoleId.Id);
 
             // Если роль найдена, то её можно установить пользвоателю, если selectedRole = null то ничего не ставим
             if (selectedRole is not null)
             {
                 targetUser.RoleId = selectedRole.RoleId;
-                _unitOfWork.Users.Update(targetUser);
+                _userService.Update(targetUser, null);
                 //return View("RoleAndUserView", model);
                 return RedirectToAction("EditUserRole", "Role");
             }

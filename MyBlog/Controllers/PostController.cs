@@ -1,26 +1,27 @@
 ﻿using AutoMapper;
-using BLL.Entity;
-using DAL;
+using BLL.Services;
+using Core.Entity;
+using Core.Interfaces.Services;
+using Core.Models.Post;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Collections;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using WEB.Models.Post;
-using WEB.Models.Tag;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WEB.Controllers
 {
     public class PostController : Controller
     {
-        private IUnitOfWork _unitOfWork;
-        private IMapper _mapper;
+        private readonly IPostService _postService;
+        private readonly ITagService _tagService;
+        private readonly IUserService _userService;
+        private readonly ICommentService _commentService;
+        private readonly IMapper _mapper;
         private readonly ILogger<PostController> _logger;
-        public PostController(IMapper mapper, IUnitOfWork unitOfWork, ILogger<PostController> logger)
+        public PostController(IPostService postService, ITagService tagService, IUserService userService, ICommentService commentService, ILogger<PostController> logger, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
+            _postService = postService;
+            _tagService = tagService;
+            _userService = userService;
+            _commentService = commentService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -33,7 +34,7 @@ namespace WEB.Controllers
         {
             var model = new PostViewModel();
 
-            model.AvailableTags = _unitOfWork.Tags.GetAll().Select(t =>
+            model.AvailableTags = _tagService.GetAll().Select(t =>
                 new TagChekBox()
                 {
                     Id = t.Id,
@@ -54,26 +55,20 @@ namespace WEB.Controllers
 
             if (ModelState.IsValid == true)
             {
-                var selectedTagId = model.AvailableTags.Where(t => t.IsChecked == true).Select(t => t.Id).ToList<Guid>();
+                var selectedTagId = model.AvailableTags?.Where(t => t.IsChecked == true).Select(t => t.Id).ToList<Guid>();
 
                 var post = new Post()
                 {
                     Title = model.Title,
                     Text = model.Text,
-                    UserId = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Login == User.Identity.Name).Id,
+                    UserId = _userService.GetAllDto().FirstOrDefault(u => u.UserName == User.Identity.Name).Id,
                     TagId = selectedTagId?.Count > 0 ? selectedTagId[0] : Guid.Empty,
                 };
 
-
-                //var selectedTags = _unitOfWork.Tags.GetAll().Where(t => model.SelectedTagId.Contains(t.Id.ToString())).ToList();
-
-                //post.Tags = selectedTags;
-
-                _unitOfWork.Posts.Create(post);
+                _postService.Create(post);
 
                 return RedirectToAction("Index", "Home");
             }
-
             return View("New", model);
         }
 
@@ -82,7 +77,7 @@ namespace WEB.Controllers
         [Route("/Post/Edit")]
         public IActionResult Edit(string id)
         {
-            var currentPost = _unitOfWork.Posts.GetById(Guid.Parse(id));
+            var currentPost = _postService.GetById(Guid.Parse(id));
 
             // Проверяем, является ли текущий пользователь автором поста, если нет - выдаем ошибку и перенаправляем на главную страницу
             if (User.FindFirst("UserId").Value != currentPost.UserId.ToString())
@@ -109,7 +104,7 @@ namespace WEB.Controllers
             if (model.Id is not null)
             {
                 // Получаем текущий пост из базы данных
-                var currentPost = _unitOfWork.Posts.GetById(Guid.Parse(model.Id));
+                var currentPost = _postService.GetById(Guid.Parse(model.Id));
 
                 if (currentPost.Title != model.Title)
                     currentPost.Title = model.Title;
@@ -117,16 +112,15 @@ namespace WEB.Controllers
                 if (currentPost.Text != model.Text)
                     currentPost.Text = model.Text;
 
-                _unitOfWork.Posts.Update(currentPost);
+                _postService.Update(currentPost);
             }
-
             return RedirectToAction("Index", "Home");
         }
 
         [Authorize]
         public IActionResult Delete(string id)
         {
-            var currentPost = _unitOfWork.Posts.GetById(Guid.Parse(id));
+            var currentPost = _postService.GetById(Guid.Parse(id));
             if (currentPost is not null)
             {
                 // Проверяем, является ли текущий пользователь автором поста, если нет - выдаем ошибку и перенаправляем на главную страницу
@@ -136,9 +130,8 @@ namespace WEB.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
-                _unitOfWork.Posts.Delete(currentPost);
+                _postService.Delete(currentPost);
             }
-
             return RedirectToAction("Index", "Home");
         }
 
@@ -147,28 +140,29 @@ namespace WEB.Controllers
         public IActionResult PostComment(string id)
         {
             // Берем пост из БД по ID
-            var currentPost = _unitOfWork.Posts.GetById(Guid.Parse(id));
+            var currentPost = _postService.GetById(Guid.Parse(id));
 
             // если поста нет, переходим на домашнюю страницу
             if (currentPost is null)
                 return RedirectToAction("Index", "Home");
 
             // Создаём объект PostViewModel
-            var model = new PostViewModel() { 
+            var model = new PostViewModel()
+            {
                 Id = id,
                 Title = currentPost.Title,
                 Text = currentPost.Text,
-                
+
             };
 
             if (!Guid.TryParse(id, out var postId))
                 return NotFound();
 
             // берем из БД связанный комментарии
-            var allComments = _unitOfWork.Comments.GetAll().Where(c =>c.PostId == postId);
+            var allComments = _commentService.GetAll().Where(c => c.PostId == postId);
 
-            model.AllComments = (from c in _unitOfWork.Comments.GetAll()
-                                 join u in _unitOfWork.Users.GetAll() on c.UserId equals u.Id
+            model.AllComments = (from c in _commentService.GetAll()
+                                 join u in _userService.GetAllDto() on c.UserId equals u.Id
                                  where c.PostId == postId
                                  select new CurrentComment()
                                  {
@@ -177,11 +171,9 @@ namespace WEB.Controllers
                                      CreateDate = c.Created,
                                      UserId = c.UserId.ToString(),
                                      PostId = c.PostId.ToString(),
-                                     UserName = u.Login
+                                     UserName = u.UserName
                                  }).ToList(
                 );
-
-            //var model = _mapper.Map<PostViewModel>(currentPost);
             return View("PostComment", model);
         }
     }

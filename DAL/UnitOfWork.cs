@@ -1,9 +1,10 @@
-﻿using BLL.Entity;
-using DAL.Interfaces;
-using DAL.Repositories;
+﻿using DAL.Repositories;
+using Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Core;
+using Core.Entity;
 
 namespace DAL
 {
@@ -11,12 +12,12 @@ namespace DAL
     {
         private ApplicationDbContext _context;
 
-        private IRepository<User> _userRepository;
-        private IRepository<UserProfile> _userProfileRepository;
-        private IRepository<Role> _roleRepository;
-        private IRepository<Post> _postRepository;
-        private IRepository<Comment> _commentRepository;
-        private IRepository<Tag> _tagRepository;
+        private IRepository<User> _userRepository = null!;
+        private IRepository<UserProfile> _userProfileRepository = null!;
+        private IRepository<Role> _roleRepository = null!;
+        private IRepository<Post> _postRepository = null!;
+        private IRepository<Comment> _commentRepository = null!;
+        private IRepository<Tag> _tagRepository = null!;
         
 
         // Реализация ленивой загрузки для репозитория User.

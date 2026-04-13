@@ -1,6 +1,9 @@
 using AutoMapper;
-using BLL.Entity;
 using BLL.MappingProfile;
+using BLL.Services;
+using Core;
+using Core.Interfaces;
+using Core.Interfaces.Services;
 using DAL;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +36,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 // Register the UnitOfWork as a singleton service
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Register services for dependency injection
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ITagService, TagService>();
 
 // Authorization
 builder.Services.AddAuthorization();

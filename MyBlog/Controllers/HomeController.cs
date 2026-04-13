@@ -1,23 +1,20 @@
-using AutoMapper;
-using BLL.Entity;
-using DAL;
-using Microsoft.AspNetCore.Authorization;
+
+using Core.Entity;
+using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MyBlog.Models;
-using System.Collections;
 using System.Diagnostics;
-using WEB.Models.Post;
 
 namespace MyBlog.Controllers
 {
     public class HomeController : Controller
     {
-        private IUnitOfWork _unitOfWork;
+        private readonly IPostService _postService;
         private readonly ILogger<HomeController> _logger;
-        public HomeController(IUnitOfWork unitOfWork, ILogger<HomeController> logger)
+
+        public HomeController(IPostService postService, ILogger<HomeController> logger)
         {
-            _unitOfWork = unitOfWork;
+            _postService = postService;
             _logger = logger;
         }
 
@@ -30,10 +27,9 @@ namespace MyBlog.Controllers
         [HttpPost]
         public IActionResult Index(string search)
         {
-            var user = User;
-            if (user.Identity.IsAuthenticated == true )
+            if (User.Identity.IsAuthenticated == true )
             {
-                _logger.LogInformation($"{user.Identity.Name} searching tags by name ({HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString()})");
+                _logger.LogInformation($"{User.Identity.Name} searching tags by name ({HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString()})");
             }
             else
             {
@@ -43,7 +39,7 @@ namespace MyBlog.Controllers
 
             if (!string.IsNullOrEmpty(search))
             {
-                IEnumerable<Post> serachedPost = _unitOfWork.Posts.GetAll().Where(n => n.Title.Contains(search)).ToList();
+                IEnumerable<Post> serachedPost = _postService.GetAll().Where(n => n.Title.Contains(search)).ToList();
 
                 if (serachedPost is not null)
                 {

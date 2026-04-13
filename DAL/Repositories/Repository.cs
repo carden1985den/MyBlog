@@ -1,4 +1,4 @@
-﻿using DAL.Interfaces;
+﻿using Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,14 +18,9 @@ namespace DAL.Repositories
             return _dbContext.Set<TEntity>();
         }
 
-        public TEntity  GetById(Guid id)
+        public TEntity? GetById(Guid id)
         {
-            var entity  = _dbContext.Set<TEntity>().Find(id);
-
-            if (entity == null)
-                throw new KeyNotFoundException($"Сущность {typeof(TEntity).Name} с id {id} не найдена.");
-
-            return entity;
+            return _dbContext.Set<TEntity>().Find(id);
         }
 
         public void Create(TEntity item)

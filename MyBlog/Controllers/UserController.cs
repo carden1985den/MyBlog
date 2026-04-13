@@ -1,6 +1,11 @@
 ﻿using AutoMapper;
-using BLL.Entity;
-using BLL.Enum;
+using BLL.Services;
+using Core;
+using Core.DTOs;
+using Core.Entity;
+using Core.Enum;
+using Core.Interfaces.Services;
+using Core.Models.User;
 using DAL;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -14,12 +19,16 @@ namespace WEB.Controllers
 {
     public class UserController : Controller
     {
-        private UnitOfWork _unitOfWork;
-        private IMapper _mapper;
+        private readonly IUserService _userService;
+        private readonly IRoleService _roleService;
+        private readonly IMapper _mapper;
         private readonly ILogger<UserController> _logger;
-        public UserController(ApplicationDbContext context, IMapper mapper, ILogger<UserController> logger)
+
+        public UserController(IUserService userService, IRoleService roleService, IMapper mapper, ILogger<UserController> logger)
         {
-            _unitOfWork = new UnitOfWork(context);
+            //_unitOfWork = new UnitOfWork(context);
+            _userService = userService;
+            _roleService = roleService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -49,26 +58,19 @@ namespace WEB.Controllers
         [Route("Registration")]
         public IActionResult Registration(RegistrationViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                var existingUser = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Login == model.Username);
-
-                if (existingUser is not null)
-                {
-                    _logger.LogError("Попытка регистрации с уже существующим логином: {Username}", model.Username);
-                    ModelState.AddModelError("", "Указанный логин занят другим пользователем");
-                    return View("Registration");
-                }
-
-                // Если логин свободен, создаем нового пользователя с данными из модели регистрации и сохраняем его в базе данных.
-                _unitOfWork.Users.Create(new User() { Login = model.Username, Password = model.Password });
-                _unitOfWork.UserProfiles.Create(new UserProfile() { FirstName = model.Firstname, LastName = model.Lastname, Picture = model.Pictures, UserId = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Login == model.Username).Id });
-
-                //var currentUser = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Login == model.Username);
-            }
-            else
+            if (!ModelState.IsValid)
             {
                 ModelState.AddModelError("", "Ошибка введенных данных");
+                return View("Registration");
+            }
+
+            bool result = _userService.Create(model);
+
+            if (result == false)
+            {
+                _logger.LogError("Попытка регистрации с уже существующим логином: {Username}", model.Username);
+                ModelState.AddModelError("", "Указанный логин занят другим пользователем");
+                return View("Registration");
             }
 
             return RedirectToAction("Login");
@@ -102,39 +104,26 @@ namespace WEB.Controllers
         [Route("Login")]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-
             if (ModelState.IsValid)
             {
-                // Получаем пользователя из базы данных по имени пользователя, введенному в форме входа
-                var currentUser = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Login == model.Username);
+                UserDto authUser = _userService.Authenticate(model.Username, model.Password);
 
                 // Проверяем, существует ли пользователь с указанным именем
-                if (currentUser is null)
+                if (authUser is null)
                 {
-                    ModelState.AddModelError("Username", "Указанный пользователь не найден");
+                    ModelState.AddModelError("", "Ошибка авторизации");
                     return View(model);
                 }
-
-                // Проверяем, совпадает ли введенный пароль с паролем пользователя
-                if (currentUser.Password != model.Password)
-                {
-                    ModelState.AddModelError("Password", "Указан неверный пароль");
-                    return View(model);
-                }
-
-                // Получаем роль пользователя из базы данных, используя его RoleId. Это позволяет нам определить, какую роль имеет пользователь и какие права доступа ему предоставляются.
-                var currentUserRole = _unitOfWork.Roles.GetAll().Where(r => r.Id == currentUser.RoleId).FirstOrDefault();
 
                 // Если пользователь найден и пароль совпадает, создаем ClaimsIdentity и выполняем вход
                 var claims = new List<Claim> {
-                    new Claim(ClaimTypes.Name, currentUser.Login),
-                    //new Claim(ClaimsIdentity.DefaultRoleClaimType, currentUserRole.Name.ToString())
-                    new Claim(ClaimTypes.Role, currentUserRole.Name.ToString())
+                    new Claim(ClaimTypes.Name, authUser.UserName),
+                    new Claim(ClaimTypes .Role, authUser.Role.ToString()),
+                    new Claim("UserId", authUser.Id.ToString())
                 };
 
-
                 // Добавить в Claim: "ID" авторизованного текущего пользователя
-                claims.Add(new Claim("UserId", currentUser.Id.ToString()));
+                claims.Add(new Claim("UserId", authUser.Id.ToString()));
 
                 // Создаем ClaimsIdentity с использованием схемы аутентификации "Cookies" и выполняем вход, передавая созданный ClaimsPrincipal
                 var claimsIdentity = new ClaimsIdentity(
@@ -169,10 +158,10 @@ namespace WEB.Controllers
         {
             var guid = User.FindFirst("UserId").Value;
             // Получаем текущего пользователя из базы данных, используя его идентификатор, который хранится в клайме "UserId" после аутентификации.
-            var currentUser = _unitOfWork.Users.GetById(Guid.Parse(User.FindFirst("UserId").Value));
+            var currentUser = _userService.GetById(Guid.Parse(User.FindFirst("UserId").Value));
 
             // Получаем профиль текущего пользователя, используя его идентификатор. Это может включать дополнительную информацию о пользователе, такую как имя, фамилия, и другие данные, которые не хранятся непосредственно в сущности User.
-            var currentUserProfile = _unitOfWork.UserProfiles.GetAll().FirstOrDefault(f => f.UserId == currentUser.Id);
+            var currentUserProfile = _userService.GetProfileByUserId(currentUser.Id);
 
             // Создаем модель представления EditViewModel и заполняем ее данными текущего пользователя и его профиля. Это позволяет передать всю необходимую информацию в представление для отображения и редактирования.
             var model = _mapper.Map<EditViewModel>((currentUser, currentUserProfile));
@@ -190,11 +179,12 @@ namespace WEB.Controllers
         {
             // Получаем текущего пользователя из базы данных, используя его идентификатор, который хранится в клайме "UserId" после аутентификации.
             // Это позволяет нам обновить информацию именно для текущего пользователя, а не для другого.
-            var currentUser = _unitOfWork.Users.GetById(Guid.Parse(model.Id));
+            var currentUser = _userService.GetById(Guid.Parse(model.Id));
 
             // Получаем профиль текущего пользователя, используя его идентификатор.
             // Это позволяет нам обновить дополнительную информацию о пользователе, которая может быть хранится в профиле, такую как имя, фамилия и другие данные.
-            var currentUserProfile = _unitOfWork.UserProfiles.GetAll().FirstOrDefault(f => f.UserId == currentUser.Id);
+            //var currentUserProfile = _unitOfWork.UserProfiles.GetAll().FirstOrDefault(f => f.UserId == currentUser.Id);
+            var currentUserProfile = _userService.GetProfileByUserId(currentUser.Id);
 
             if (!string.IsNullOrEmpty(model.Password))
                 currentUser.Password = model.Password;
@@ -211,8 +201,8 @@ namespace WEB.Controllers
             if (!string.IsNullOrEmpty(model.Picture))
                 currentUserProfile.Picture = model.Picture;
 
-            _unitOfWork.Users.Update(currentUser);
-            _unitOfWork.UserProfiles.Update(currentUserProfile);
+            _userService.Update(currentUser, currentUserProfile);
+            //_unitOfWork.UserProfiles.Update(currentUserProfile);
 
             return RedirectToAction("Index", "Home");
         }
@@ -232,23 +222,22 @@ namespace WEB.Controllers
         [Route("/User/Remove")]
         public void Remove()
         {
-            _unitOfWork.Users.Delete(_unitOfWork.Users.GetById(Guid.Parse(User.FindFirst("UserId").Value)));
+            _userService.Delete(User.FindFirst("UserId").Value);
             Response.Redirect("/");
         }
 
         [Authorize]
         public IActionResult GetAllUsers()
         {
-            var users = _unitOfWork.Users.GetAll;
+            var users = _userService.GetAll;
             return View("UserDetails", users);
         }
 
         [Authorize]
         public IActionResult GetUserById(Guid id)
         {
-            var user = _unitOfWork.Users.GetById(id);
+            var user = _userService.GetByIdDto(id);
             return View("UserDetails", user);
         }
     }
 }
-

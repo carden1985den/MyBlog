@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
-using BLL.Entity;
 using WEB.Models.User;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WEB.Models.Post;
+using Core.Entity;
+using Core.Models.User;
+using Core.Models.Post;
 
 namespace BLL.MappingProfile
 {
@@ -12,8 +13,6 @@ namespace BLL.MappingProfile
     {
         public MappingProfile()
         {
-            //CreateMap<(User s1, UserProfile s2), EditViewModel>()
-            //    .ForMember(dst => dst.Username, option => option.MapFrom(src => src.s1.Login));
             CreateMap<(User s1, UserProfile s2), EditViewModel>()
                 .ForMember(dst => dst.Id, option => option.MapFrom(src => src.s1.Id))
                 .ForMember(dst => dst.Username, option => option.MapFrom(src => src.s1.Login))
